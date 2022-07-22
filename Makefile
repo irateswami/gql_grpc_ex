@@ -4,7 +4,7 @@ gql:
 	go run github.com/99designs/gqlgen generate
 
 proto:
-	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative ./rpc_stuff/schema.proto
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative ./grpc_stuff/schema.proto
 
 dep: 
 	go mod tidy && go mod vendor && go fmt

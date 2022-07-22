@@ -2,19 +2,8 @@
 
 package model
 
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
-}
-
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
-}
-
-type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+type ReturnTime struct {
+	Server1 *string `json:"server_1"`
+	Server2 *string `json:"server_2"`
+	Server3 *string `json:"server_3"`
 }
