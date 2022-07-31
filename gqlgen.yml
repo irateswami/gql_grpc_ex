@@ -50,6 +50,12 @@ autobind:
 # modelgen, the others will be allowed when binding to fields. Configure them to
 # your liking
 models:
+  ReturnTime: 
+    fields:
+      server_1:
+        resolver: true
+      server_2:
+        resolver: true
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID

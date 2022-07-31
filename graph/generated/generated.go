@@ -36,6 +36,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	Query() QueryResolver
+	ReturnTime() ReturnTimeResolver
 }
 
 type DirectiveRoot struct {
@@ -55,6 +56,10 @@ type ComplexityRoot struct {
 
 type QueryResolver interface {
 	ReturnTime(ctx context.Context) (*model.ReturnTime, error)
+}
+type ReturnTimeResolver interface {
+	Server1(ctx context.Context, obj *model.ReturnTime) (*string, error)
+	Server2(ctx context.Context, obj *model.ReturnTime) (*string, error)
 }
 
 type executableSchema struct {
@@ -417,7 +422,7 @@ func (ec *executionContext) _ReturnTime_server_1(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Server1, nil
+		return ec.resolvers.ReturnTime().Server1(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -435,8 +440,8 @@ func (ec *executionContext) fieldContext_ReturnTime_server_1(ctx context.Context
 	fc = &graphql.FieldContext{
 		Object:     "ReturnTime",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -458,7 +463,7 @@ func (ec *executionContext) _ReturnTime_server_2(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Server2, nil
+		return ec.resolvers.ReturnTime().Server2(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -476,8 +481,8 @@ func (ec *executionContext) fieldContext_ReturnTime_server_2(ctx context.Context
 	fc = &graphql.FieldContext{
 		Object:     "ReturnTime",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -2380,13 +2385,39 @@ func (ec *executionContext) _ReturnTime(ctx context.Context, sel ast.SelectionSe
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ReturnTime")
 		case "server_1":
+			field := field
 
-			out.Values[i] = ec._ReturnTime_server_1(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ReturnTime_server_1(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "server_2":
+			field := field
 
-			out.Values[i] = ec._ReturnTime_server_2(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ReturnTime_server_2(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "server_3":
 
 			out.Values[i] = ec._ReturnTime_server_3(ctx, field, obj)

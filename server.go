@@ -3,6 +3,7 @@ package main
 import (
 	"main/graph"
 	"main/graph/generated"
+	rpc_stuff "main/grpc_stuff"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -12,10 +13,13 @@ import (
 const defaultPort = ":8080"
 
 func graphqlHandler() gin.HandlerFunc {
+	new_tasks := rpc_stuff.NewRpcTasks(new(rpc_stuff.RpcTasks))
 	h := handler.NewDefaultServer(
 		generated.NewExecutableSchema(
 			generated.Config{
-				Resolvers: &graph.Resolver{}}))
+				Resolvers: &graph.Resolver{
+					Rpc_Conns: new_tasks,
+				}}))
 
 	return func(c *gin.Context) {
 		h.ServeHTTP(c.Writer, c.Request)

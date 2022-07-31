@@ -7,40 +7,38 @@ import (
 	"context"
 	"main/graph/generated"
 	"main/graph/model"
+	rpc_stuff "main/grpc_stuff"
 )
 
 // ReturnTime is the resolver for the returnTime field.
 func (r *queryResolver) ReturnTime(ctx context.Context) (*model.ReturnTime, error) {
-	str1 := "Hi"
-	str2 := "I'm well"
 	str3 := "How are you"
 
 	return &model.ReturnTime{
-		Server1: &str1,
-		Server2: &str2,
 		Server3: &str3,
 	}, nil
+}
+
+// Server1 is the resolver for the server_1 field.
+func (r *returnTimeResolver) Server1(ctx context.Context, obj *model.ReturnTime) (*string, error) {
+	str1, err := r.Rpc_Conns.MakeCall(":50051", "server_1")
+	if err != nil {
+		return nil, err
+	}
+	return &str1, nil
+}
+
+// Server2 is the resolver for the server_2 field.
+func (r *returnTimeResolver) Server2(ctx context.Context, obj *model.ReturnTime) (*string, error) {
+	str2 := rpc_stuff.ClientConn(":50052", "server_2")
+	return &str2, nil
 }
 
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// ReturnTime returns generated.ReturnTimeResolver implementation.
+func (r *Resolver) ReturnTime() generated.ReturnTimeResolver { return &returnTimeResolver{r} }
+
 type queryResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/**
-func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
-
-type mutationResolver struct{ *Resolver }
-*/
+type returnTimeResolver struct{ *Resolver }
