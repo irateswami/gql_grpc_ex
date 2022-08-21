@@ -41,4 +41,7 @@ func main() {
 	r.POST("/query", graphqlHandler())
 	r.GET("/", playgroundHandler())
 	r.Run(defaultPort)
+
+	// r.Run blocks, but we need to shut things down
+	rpc_stuff.ShutDownAllConnections()
 }

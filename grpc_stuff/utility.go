@@ -3,11 +3,33 @@ package rpc_stuff
 import (
 	"context"
 	"log"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
+
+var (
+	connMap connectionMap
+)
+
+func init() {
+	// connections should be established here via env vars
+	// using newClientConnections
+	newConnMap := make(map[string]*grpc.ClientConn)
+	var mut sync.RWMutex
+	connMap.connMap = newConnMap
+	connMap.mut = &mut
+
+	// address, name
+	newClientConn(":50051", "server_1")
+}
+
+type connectionMap struct {
+	connMap map[string]*grpc.ClientConn
+	mut     *sync.RWMutex
+}
 
 type RpcTasksInterface interface {
 	MakeCall(service, name string) (string, error)
@@ -24,29 +46,10 @@ func NewRpcTasks(conns RpcTasksInterface) *RpcTasks {
 }
 
 func (rt *RpcTasks) MakeCall(service, name string) (string, error) {
+	connMap.mut.RLock()
+	defer connMap.mut.RUnlock()
 
-	return "I'm a silly interface how about you", nil
-}
-
-func NewClientConn(addr, name string) *grpc.ClientConn {
-	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Printf("did not connect: %v\n", err)
-		panic("couldn't connect")
-	}
-	defer conn.Close()
-
-	return conn
-}
-
-func ClientConn(addr, name string) string {
-	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Printf("did not connect: %v\n", err)
-	}
-
-	defer conn.Close()
-	c := NewGreeterClient(conn)
+	c := NewGreeterClient(connMap.connMap[service])
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -55,8 +58,28 @@ func ClientConn(addr, name string) string {
 		Name: name,
 	})
 	if err != nil {
-		log.Printf("could not greet: %v\n", err)
+		return "", err
 	}
 
-	return r.GetMessage()
+	return r.GetMessage(), nil
+}
+
+func newClientConn(addr, name string) {
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Printf("did not connect: %v\n", err)
+		panic("couldn't connect")
+	}
+
+	connMap.mut.Lock()
+	connMap.connMap[name] = conn
+	connMap.mut.Unlock()
+}
+
+func ShutDownAllConnections() {
+	connMap.mut.Lock()
+	defer connMap.mut.Unlock()
+	for _, v := range connMap.connMap {
+		v.Close()
+	}
 }

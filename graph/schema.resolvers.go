@@ -7,7 +7,6 @@ import (
 	"context"
 	"main/graph/generated"
 	"main/graph/model"
-	rpc_stuff "main/grpc_stuff"
 )
 
 // ReturnTime is the resolver for the returnTime field.
@@ -21,7 +20,7 @@ func (r *queryResolver) ReturnTime(ctx context.Context) (*model.ReturnTime, erro
 
 // Server1 is the resolver for the server_1 field.
 func (r *returnTimeResolver) Server1(ctx context.Context, obj *model.ReturnTime) (*string, error) {
-	str1, err := r.Rpc_Conns.MakeCall(":50051", "server_1")
+	str1, err := r.Rpc_Conns.MakeCall("server_1", "Bryan")
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +29,7 @@ func (r *returnTimeResolver) Server1(ctx context.Context, obj *model.ReturnTime)
 
 // Server2 is the resolver for the server_2 field.
 func (r *returnTimeResolver) Server2(ctx context.Context, obj *model.ReturnTime) (*string, error) {
-	str2 := rpc_stuff.ClientConn(":50052", "server_2")
+	str2 := "Hi I'm str2"
 	return &str2, nil
 }
 
